@@ -197,9 +197,24 @@ int addReferenceToTargetCommit(const char *name, void *payload)
     StatusHandler(gitStatusReceiver, errorReceiver).status(repo);
 }
 
+- (Diff* _Nullable)stagedChanges
+{
+    return ChangesHandler(repo).fetchStagedChanges();
+}
+
+- (Diff* _Nullable)unstagedChanges
+{
+    return ChangesHandler(repo).fetchUnstagedChanges();
+}
+
 - (void)stage:(nonnull NSString*)path :(id<ErrorReceiverProtocol> _Nullable)errorReceiver
 {
     IndexHandler(errorReceiver).stage(repo, [path UTF8String]);
+}
+
+- (void)removeFile:(nonnull NSString*)path :(id<ErrorReceiverProtocol> _Nullable)errorReceiver
+{
+    IndexHandler(errorReceiver).removeFile(repo, [path UTF8String]);
 }
 
 - (void)unstage:(nonnull NSString*)path :(id<ErrorReceiverProtocol> _Nullable)errorReceiver
@@ -265,6 +280,11 @@ int addReferenceToTargetCommit(const char *name, void *payload)
 - (void)diff:(nonnull Commit*)baseCommit :(nonnull Commit*)targetCommit :(id<DiffReceiverProtocol> _Nonnull)diffReceiver
 {
     DiffHandler(diffReceiver).diff(repo, baseCommit->commit, targetCommit->commit);
+}
+
+- (Diff * _Nullable)diffReturn:(nonnull Commit*)baseCommit :(nonnull Commit*)targetCommit
+{
+    return NewDiffHandler().diff(repo, baseCommit->commit, targetCommit->commit);
 }
 
 - (Commit* _Nullable)getReferenceTargetCommit:(nonnull Reference*)ref

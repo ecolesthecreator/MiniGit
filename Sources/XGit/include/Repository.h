@@ -113,6 +113,16 @@
              :(id<ErrorReceiverProtocol> _Nullable)errorReceiver;
 
 /**
+ * Fetch staged changes
+ */
+- (Diff* _Nullable)stagedChanges;
+
+/**
+ * Fetch unstaged changes
+ */
+- (Diff* _Nullable)unstagedChanges;
+
+/**
  * Get the repository's status such as staged files, unstaged files, etc.
  *
  * @param gitStatusReceiver Object to progressively receive the status report.
@@ -127,6 +137,14 @@
  */
 - (void)stage:(nonnull NSString*)path
              :(id<ErrorReceiverProtocol> _Nullable)errorReceiver;
+
+/**
+ * Remove the file(s) from the index for the next commit
+ *
+ * @param path Path to the file to remove relative to the repo root
+ */
+- (void)removeFile:(nonnull NSString*)path
+                  :(id<ErrorReceiverProtocol> _Nullable)errorReceiver;
 
 /**
  * Unstage a file from the index
@@ -174,6 +192,16 @@
 - (void)diff:(nonnull Commit*)baseCommit
             :(nonnull Commit*)targetCommit
             :(id<DiffReceiverProtocol> _Nonnull)diffReceiver;
+
+/**
+ * Compute the diff between two commits
+ *
+ * @param baseCommit The base commit
+ * @param targetCommit The target commit
+ * @param diffReceiver Object to receive the diff result
+ */
+- (Diff* _Nullable)diffReturn:(nonnull Commit*)baseCommit
+                             :(nonnull Commit*)targetCommit;
 
 /**
  * Create a new local-tracking branch pointing at the given commit.

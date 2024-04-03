@@ -12,7 +12,7 @@ import XGit
 public class GitStatus: StatusProtocol, ObservableObject {
 
     // Copy from git_repository_state_t, declared in libgit2 repository.h
-    public enum GitRepositoryState: Int32 {
+    public enum GitRepositoryState: Int32, CustomStringConvertible {
         case NONE
         case MERGE
         case REVERT
@@ -25,6 +25,36 @@ public class GitStatus: StatusProtocol, ObservableObject {
         case REBASE_MERGE
         case APPLY_MAILBOX
         case APPLY_MAILBOX_OR_REBASE
+
+        public var description: String {
+            switch self {
+
+            case .NONE:
+                return "None"
+            case .MERGE:
+                return "Merge"
+            case .REVERT:
+                return "Revert"
+            case .REVERT_SEQUENCE:
+                return "Revert Sequence"
+            case .CHERRYPICK:
+                return "Cherrypick"
+            case .CHERRYPICK_SEQUENCE:
+                return "Cherrypick Sequence"
+            case .BISECT:
+                return "Bisect"
+            case .REBASE:
+                return "Rebase"
+            case .REBASE_INTERACTIVE:
+                return "Interactive Rebase"
+            case .REBASE_MERGE:
+                return "Merge Rebase"
+            case .APPLY_MAILBOX:
+                return "Apply Mailbox"
+            case .APPLY_MAILBOX_OR_REBASE:
+                return "Apply Mailbox or Rebase"
+            }
+        }
     }
 
     @Published public var currentBranch: String = ""

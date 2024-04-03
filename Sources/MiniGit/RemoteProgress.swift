@@ -50,8 +50,8 @@ public class RemoteProgress: RemoteProgressProtocol, ObservableObject {
         public var status: String?
     }
 
-    var repo: GitRepository
-    var credential: Credential? = nil
+    weak var repo: GitRepository?
+    var credential: (any GitCredential)? = nil
     public var errorReceiver = SimpleErrorReceiver()
 
     @Published public var operation: String = ""
@@ -98,7 +98,7 @@ public class RemoteProgress: RemoteProgressProtocol, ObservableObject {
         self.repo = repo
     }
 
-    public func clearState(_ op: String, _ cred: Credential?) {
+    public func clearState(_ op: String, _ cred: GitCredential?) {
         credential = cred
         operation = op
         inProgress = true
@@ -116,7 +116,7 @@ public class RemoteProgress: RemoteProgressProtocol, ObservableObject {
     public func onComplete() {
         DispatchQueue.main.async {
             self.inProgress = false
-            self.repo.onRepositoryExistenceChanged() // To refresh the hasRepo field after a successful clone
+            self.repo?.onRepositoryExistenceChanged() // To refresh the hasRepo field after a successful clone
 
             // Push updates the targets of remote tracking refs (to match the local ones
             // e.g. [origin/main] = [main]) so we need to update the list of references
@@ -126,8 +126,8 @@ public class RemoteProgress: RemoteProgressProtocol, ObservableObject {
             // currently on the server so we need to update the list of references that annotates
             // the relevant commits. Fetch does not changes the commit graph.
             // However, it could create new remote-tracking refs.
-            self.repo.onReferencesListChanged()
-            self.repo.onReferencesTargetsChanged()
+            self.repo?.onReferencesListChanged()
+            self.repo?.onReferencesTargetsChanged()
         }
     }
 

@@ -88,6 +88,7 @@ struct MergeHandler: CheckoutProgressReporter, GitErrorReporter {
 
             merge_opts.flags = 0;
             merge_opts.file_flags = GIT_MERGE_FILE_STYLE_DIFF3;
+            merge_opts.file_favor = GIT_MERGE_FILE_FAVOR_THEIRS;
 
             checkout_opts.checkout_strategy = GIT_CHECKOUT_FORCE|GIT_CHECKOUT_ALLOW_CONFLICTS;
 
@@ -150,7 +151,8 @@ private:
         }
 
         /* Checkout the result so the workdir is in the expected state */
-        ff_checkout_options.checkout_strategy = GIT_CHECKOUT_SAFE;
+//        ff_checkout_options.checkout_strategy = GIT_CHECKOUT_FORCE;
+        ff_checkout_options.checkout_strategy = GIT_CHECKOUT_USE_THEIRS;
         if (reportError(git_checkout_tree(repo, target, &ff_checkout_options), "failed to checkout HEAD")) {
             return -1;
         }

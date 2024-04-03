@@ -5,8 +5,71 @@
 //  Created by Lightech on 10/24/2048.
 //
 
+#import "Diff.h"
 #import "StatusProtocol.h"
 #import "GitErrorReporter.mm"
+
+struct ChangesHandler {
+    git_repository *repo;
+    git_diff_options diff_opts;
+    git_index *index = NULL;
+    git_reference *head_ref = NULL;
+    git_object *head_tree = NULL;
+
+    ChangesHandler(git_repository *repository) : repo(repository) {
+        git_diff_options_init(&diff_opts, GIT_DIFF_OPTIONS_VERSION);
+        diff_opts.flags |= GIT_DIFF_INCLUDE_UNTRACKED;
+    }
+
+    ~ChangesHandler() {
+        git_index_free(index);
+        git_reference_free(head_ref);
+        git_tree_free((git_tree*)head_tree);
+    }
+
+    Diff* fetchStagedChanges() {
+        if (git_repository_head(&head_ref, repo) == 0) {
+            if (git_reference_peel(&head_tree, head_ref, GIT_OBJECT_TREE) != 0) {
+                // Error handling omitted for brevity
+                git_reference_free(head_ref);
+                head_ref = NULL;
+                return nullptr;
+            }
+        }
+
+        if (git_repository_index(&index, repo) != 0) {
+            // Error handling omitted for brevity
+            git_reference_free(head_ref);
+            head_ref = NULL;
+            return nullptr;
+        }
+
+        git_diff *staged_changes = nullptr;
+        if (git_diff_tree_to_index(&staged_changes, repo, (git_tree*)head_tree, index, &diff_opts) != 0) {
+            // Error handling omitted for brevity
+            return nullptr;
+        }
+
+        Diff *result = [[Diff alloc] init :staged_changes];
+        return result;
+    }
+
+    Diff* fetchUnstagedChanges() {
+        if (!index && git_repository_index(&index, repo) != 0) {
+            // Error handling omitted for brevity
+            return nullptr;
+        }
+
+        git_diff *unstaged_changes = nullptr;
+        if (git_diff_index_to_workdir(&unstaged_changes, repo, index, &diff_opts) != 0) {
+            // Error handling omitted for brevity
+            return nullptr;
+        }
+
+        Diff *result = [[Diff alloc] init :unstaged_changes];
+        return result;
+    }
+};
 
 struct StatusHandler: GitErrorReporter {
 

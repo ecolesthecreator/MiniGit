@@ -163,10 +163,10 @@ public class GitRepository: Repository, Identifiable, ObservableObject {
     }
 
     public func clone(_ url: String) {
-        remoteProgress.clearState("Clone from \(url)", credentialsManager.getCredentialForUrl(url))
-        DispatchQueue.global().async {
+        remoteProgress.clearState("Clone from \(url)", credentialsManager.getCredentialForUrl(url: url))
+//        DispatchQueue.global().async {
             self.clone(url, self.remoteProgress, nil /*self.mergeProgress*/, self.remoteProgress.errorReceiver)
-        }
+//        }
     }
 
     public func reset(_ commit: Commit) {
@@ -185,17 +185,17 @@ public class GitRepository: Repository, Identifiable, ObservableObject {
     }
 
     public func push(_ remote: Remote, _ force: Bool) {
-        remoteProgress.clearState("Push to \(remote.name)", credentialsManager.getCredentialForUrl(remote.url))
-        DispatchQueue.global().async {
+        remoteProgress.clearState("Push to \(remote.name)", credentialsManager.getCredentialForUrl(url: remote.url))
+//        DispatchQueue.global().async {
             self.push(remote, force, self.remoteProgress, self.remoteProgress.errorReceiver)
-        }
+//        }
     }
 
     public func fetch(_ remote: Remote) {
-        remoteProgress.clearState("Fetch from \(remote.name)", credentialsManager.getCredentialForUrl(remote.url))
-        DispatchQueue.global().async {
+        remoteProgress.clearState("Fetch from \(remote.name)", credentialsManager.getCredentialForUrl(url: remote.url))
+//        DispatchQueue.global().async {
             self.fetch(remote, self.remoteProgress, self.remoteProgress.errorReceiver)
-        }
+//        }
     }
 
 }

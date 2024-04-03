@@ -14,7 +14,7 @@
     self->_id = [[NSUUID alloc] init];
     self->_theOldFile = [[DiffFile alloc] init :delta->old_file];
     self->_theNewFile = [[DiffFile alloc] init :delta->new_file];
-
+    self->_type = (DiffDeltaType)delta->status;
     return self;
 }
 

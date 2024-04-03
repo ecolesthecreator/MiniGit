@@ -7,40 +7,59 @@
 
 import SwiftUI
 
-@available(iOS 14, macOS 11.0, *)
-public class CredentialsManager: ObservableObject {
+public protocol CredentialProvider {
+    associatedtype Cred: GitCredential
+    func fetchCredentials() -> [Cred]
+    func addOrUpdate(oldCredential: Cred?, cred: Cred) throws
+    func remove(offsets: IndexSet)
+    func getCredentialForUrl(url: String) -> Cred?
+}
 
-    @Published public var allCredentials = [Credential]()
-
+public class FileSystemCredentialManager: CredentialProvider {
     var credentialsFileUrl: URL
 
     public init(credentialsFileUrl: URL) {
         // Load credentials from file
         self.credentialsFileUrl = credentialsFileUrl
+    }
+
+    public func fetchCredentials() -> [Credential] {
         let decoder = JSONDecoder()
         do {
             let data = try Data(contentsOf: credentialsFileUrl)
-            allCredentials = try decoder.decode([Credential].self, from: data)
+            return try decoder.decode([Credential].self, from: data)
         } catch let error {
             print(error)
+            return []
         }
     }
 
-    public func save() throws {
+    func save(credentials: [Credential]) throws {
         let encoder = JSONEncoder()
-        let data = try encoder.encode(allCredentials)
+        let data = try encoder.encode(credentials)
         FileManager.default.createFile(atPath: credentialsFileUrl.path,
                                        contents: data,
                                        attributes: nil)
     }
 
-    public func addOrUpdate(_ oldcred: Credential? = nil, _ cred: Credential) throws {
+    public func remove(offsets: IndexSet) {
+        var allCredentials = fetchCredentials()
+        allCredentials.remove(atOffsets: offsets)
+        do {
+            try save(credentials: allCredentials)
+        } catch let error {
+            print(error)
+        }
+    }
+
+    public func addOrUpdate(oldCredential oldcred: Credential?, cred: Credential) throws {
+        var allCredentials = fetchCredentials()
         if let old_cred = oldcred {
             // Update the old credential with new information
             if let old_cred_index = allCredentials.firstIndex(where: {$0.id == old_cred.id}) {
                 allCredentials.remove(at: old_cred_index)
                 allCredentials.insert(cred, at: old_cred_index) // Check ID?
-                try save()
+                try save(credentials: allCredentials)
             } else {
                 print("Cannot find the old credential in the list! Something is wrong!")
             }
@@ -53,21 +72,33 @@ public class CredentialsManager: ObservableObject {
                 throw ActionError(message: "The credential with the same ID already exists. Cannot add another one.")
             } else {
                 allCredentials.append(cred)
-                try save()
+                try save(credentials: allCredentials)
             }
         }
     }
 
-    public func remove(offsets: IndexSet) {
-        allCredentials.remove(atOffsets: offsets)
-        do {
-            try save()
-        } catch let error {
-            print(error)
-        }
+    public func getCredentialForUrl(url: String) -> Credential? {
+        var allCredentials = fetchCredentials()
+        return allCredentials.first(where: { url.hasPrefix($0.targetURL) })
+    }
+}
+
+@available(iOS 14, macOS 11.0, *)
+public class CredentialsManager: ObservableObject {
+
+    @Published public var allCredentials = [any GitCredential]()
+    private let credentialProvider: any CredentialProvider
+
+    public init(provider: any CredentialProvider) {
+        self.credentialProvider = provider
+        allCredentials = credentialProvider.fetchCredentials()
     }
 
-    public func getCredentialForUrl(_ url: String) -> Credential? {
-        return allCredentials.first(where: { url.hasPrefix($0.targetURL) })
+    public func remove(offsets: IndexSet) {
+        credentialProvider.remove(offsets: offsets)
+    }
+
+    public func getCredentialForUrl(url: String) -> GitCredential? {
+        return credentialProvider.getCredentialForUrl(url: url)
     }
 }

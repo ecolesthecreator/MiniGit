@@ -47,6 +47,17 @@ struct IndexHandler: GitErrorReporter {
         reportError(git_index_write(index), "Cannot write index");
     }
 
+    void removeFile(git_repository *repo, const char* path) {
+        if (reportError(git_repository_index(&index, repo), "Cannot open index"))
+            return;
+
+        git_strarray pathspec = { (char**)(&path), 1 };
+        if (reportError(git_index_remove_all(index, &pathspec, print_matched_cb, this), "Fail to stage path"))
+            return;
+
+        reportError(git_index_write(index), "Cannot write index");
+    }
+
     // Used in unstage
     git_reference *head_ref = NULL;
     git_object *head_commit = NULL;
