@@ -62,11 +62,21 @@ private:
             auto error = git_credential_userpass_plaintext_new(out, username, password);
 
             return error;
-        } else {
-            // TODO Support SSH
-            printf("Unsupported credential");
-            return -1;
         }
+
+        if ([cred isSSHAuthenticationMethod]){
+            auto publicKey = [[cred getSSHPublic] UTF8String];
+            auto privateKey = [[cred getSSHPrivate] UTF8String];
+            auto username = [[cred getUserName] UTF8String];
+            auto password = [[NSString new] UTF8String];
+
+            auto error = git_credential_ssh_key_memory_new(out, username, nil, privateKey, nil);
+
+            return error;
+        }
+
+        printf("Unsupported credential");
+        return -1;
     }
 
     static int transfer_progress(const git_indexer_progress *stats, void *payload) {

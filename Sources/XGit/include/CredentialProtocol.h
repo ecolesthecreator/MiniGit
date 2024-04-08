@@ -19,6 +19,12 @@
 - (BOOL)isUserNamePasswordAuthenticationMethod;
 
 /**
+ * @return true if this credential object is for SSH
+ *         authentication
+ */
+- (BOOL)isSSHAuthenticationMethod;
+
+/**
  * @return the user name for username-password authentication method
  */
 - (nonnull NSString*)getUserName;
@@ -28,5 +34,15 @@
  *         personal access token (PAT) in many Git hosting services
  */
 - (nonnull NSString*)getPassword;
+
+/**
+ * @return the public key for SSH authentication method) in many Git hosting services
+ */
+- (nonnull NSString*)getSSHPublic;
+
+/**
+ * @return the private key for SSH authentication method) in many Git hosting services
+ */
+- (nonnull NSString*)getSSHPrivate;
 
 @end

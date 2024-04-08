@@ -32,6 +32,18 @@ public protocol GitCredential: CredentialProtocol {
 }
 
 public class KeychainCredential: CredentialProtocol, Identifiable, GitCredential {
+    public func isSSHAuthenticationMethod() -> Bool {
+        return kind == .ssh
+    }
+    
+    public func getSSHPublic() -> String {
+        return publicKey ?? ""
+    }
+    
+    public func getSSHPrivate() -> String {
+        return privateKey?() ?? ""
+    }
+    
     // Unique identifier
     public var id: String
     public var kind: CredentialKind
@@ -69,6 +81,7 @@ public class KeychainCredential: CredentialProtocol, Identifiable, GitCredential
         privateKey: @escaping @autoclosure () -> String
     ) {
         self.id = id
+        self.userName = "git"
         self.kind = kind
         self.targetURL = targetURL
         self.publicKey = publicKey
@@ -90,7 +103,6 @@ public class KeychainCredential: CredentialProtocol, Identifiable, GitCredential
 
 @available(iOS 14, macOS 11.0, *)
 public class Credential: Identifiable, Codable, GitCredential {
-
     // Unique identifier
     public var id: String
     public var kind: CredentialKind
@@ -138,6 +150,10 @@ public class Credential: Identifiable, Codable, GitCredential {
         return kind == .password
     }
 
+    public func isSSHAuthenticationMethod() -> Bool {
+        kind == .ssh
+    }
+
     public func getUserName() -> String {
         return userName!
     }
@@ -146,4 +162,11 @@ public class Credential: Identifiable, Codable, GitCredential {
         return _password!
     }
 
+    public func getSSHPublic() -> String {
+        return publicKey ?? ""
+    }
+
+    public func getSSHPrivate() -> String {
+        return privateKey?() ?? ""
+    }
 }
